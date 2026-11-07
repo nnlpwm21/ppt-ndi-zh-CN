@@ -21,11 +21,13 @@ $(document).ready(function() {
 		}
 		if (fs.existsSync(jsonPath)) {
 			const rsc = fs.readFileSync(jsonPath, { encoding: 'utf8' });
-			const fullObj = $.parseJSON(rsc);
+			const fullObj = JSON.parse(rsc);
 			for ( let i = 0; i < fullObj.length; i++ ) {
 				let obj = fullObj[i];
 				if (obj["item"] === sTitle) {
-					result = obj.lang[curLang].msg;
+					// 优先使用当前语言；若缺失则回退到英语，避免因个别词条未翻译导致界面报错
+					const langObj = (obj.lang && obj.lang[curLang]) ? obj.lang[curLang] : (obj.lang ? obj.lang["en"] : null);
+					result = langObj ? langObj.msg : null;
 					break;
 				}
 			}
@@ -39,7 +41,7 @@ $(document).ready(function() {
 	getLangList=function() {
 		const jsonPath = getPath("info");
 		const rsc = fs.readFileSync(jsonPath, { encoding: 'utf8' });
-		const fullObj = $.parseJSON(rsc);
+		const fullObj = JSON.parse(rsc);
 		const langList = fullObj.enabledLangs;
 		let result = [];
 		for ( let i = 0; i < langList.length; i++ ) {

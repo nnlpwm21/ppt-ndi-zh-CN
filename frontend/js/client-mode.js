@@ -2,7 +2,7 @@ $(document).ready(function() {
 	const ipc = require('electron').ipcRenderer;
 	const fs = require("fs-extra");
 	let configData = {
-		"lang": "en"
+		"lang": "zh"
 	};
 
 	function relocateTitlebarElements() {

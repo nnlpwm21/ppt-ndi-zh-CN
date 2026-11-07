@@ -10,6 +10,7 @@
 	font-style: normal;
 }
 
+/* Open Sans 不含中文字形，为中日韩语言补充系统字体回退 */
 html {
 	border-style: solid;
 	border-color: #10192c;
@@ -18,7 +19,7 @@ html {
 }
 
 * {
-	font-family: 'open_sanslight';
+	font-family: 'open_sanslight', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
 	padding: 0;
 	margin: 0;
 	font-size: 13px;

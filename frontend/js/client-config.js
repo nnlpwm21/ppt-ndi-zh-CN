@@ -18,7 +18,7 @@ $(document).ready(function() {
 		options = {
 			type: 'info',
 			message: myMsg,
-			buttons: ["OK"]
+			buttons: [getLangRsc("ui-config/dialog-ok", configData.lang)]
 		};
 		dialog.showMessageBoxSync(currentWindow, options);
 	}
@@ -65,8 +65,25 @@ $(document).ready(function() {
 				$("#langList").val("lang_" + configData.lang);
 			}
 
+			refreshRendererLabels();
 			setLangRsc();
 		});
+	}
+
+	// 语言确定后刷新渲染器下拉项的显示文本（value 保持不变）
+	function refreshRendererLabels() {
+		$("#rendererList").empty();
+		for ( let i = 0; i < rendererList.length; i++ ) {
+			let displayName = rendererList[i];
+			if ( rendererList[i] === "Internal" ) {
+				displayName = getLangRsc("ui-config/renderer-internal", configData.lang);
+			}
+			$("#rendererList").append($('<option>', {
+				value: rendererList[i],
+				text : displayName
+			}));
+		}
+		$("#rendererList").val(configData.renderer);
 	}
 
 	function setLangRsc() {
@@ -115,6 +132,7 @@ $(document).ready(function() {
 				alertMsg(getLangRsc("ui-config/could-not-save-config", configData.lang));
 			} else {
 				ipc.send('remote', { name: "reflectConfig" });
+				refreshRendererLabels();
 				setLangRsc();
 				if (showInfo) {
 					setTimeout(function() {
@@ -145,13 +163,6 @@ $(document).ready(function() {
 			}));
 		});
 
-		for ( let i = 0; i < rendererList.length; i++ ) {
-			$("#rendererList").append($('<option>', { 
-				value: rendererList[i],
-				text : rendererList[i]
-			}));
-		}
-
 		defaultData = {
 			"version" : version,
 			"startAsTray" : false,
@@ -165,12 +176,11 @@ $(document).ready(function() {
 				"white" : ""
 			},
 			"renderer": rendererList[0],
-			"lang": "en"
+			"lang": "zh"
 		};
 		configData = defaultData;
 
 		configPath = remote.app.getAppPath().replace(/(\\|\/)resources(\\|\/)app\.asar/, "") + "/" + configFile;
-
 		if (fs.existsSync(configPath)) {
 			loadConfig();
 		} else {
@@ -179,6 +189,8 @@ $(document).ready(function() {
 				loadConfig();
 				setConfig(false);
 			} else {
+				refreshRendererLabels();
+				setLangRsc();
 				setConfig(false, true);
 			}
 		}

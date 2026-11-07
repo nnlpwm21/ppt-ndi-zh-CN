@@ -30,6 +30,7 @@ PrivilegesRequiredOverridesAllowed=commandline
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 
 [Files]
 Source: "{#MyAppHome}\tmp\ppt-ndi-win32-x64\ppt-ndi.exe"; DestDir: "{app}"; Flags: ignoreversion

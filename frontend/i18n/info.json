@@ -1,6 +1,6 @@
 {
-	"updated": "2020-05-21",
-	"enabledLangs" : [ "en", "ko" ],
+	"updated": "2026-11-06",
+	"enabledLangs" : [ "en", "ko", "zh" ],
 	"langDetails": {
 		"en" : {
 			"display_name" : "English",
@@ -9,6 +9,10 @@
 		"ko" : {
 			"display_name" : "Korean",
 			"native_name" : "한국어"
+		},
+		"zh" : {
+			"display_name" : "Chinese (Simplified)",
+			"native_name" : "简体中文"
 		}
 	}
 }

@@ -48,6 +48,8 @@ $(document).ready(function() {
 	let multipleMonitors;
 	let loadBackgroundInit = false;
 	let glLayout = null;
+	// 当前显示的"就绪"占位标题，用于语言切换时判断标题栏是否已被文件名覆盖
+	let curReadyTitle = "";
 
 	function prepare() {
 		try {
@@ -128,7 +130,7 @@ $(document).ready(function() {
 		options = {
 			type: 'info',
 			message: "" + myMsg,
-			buttons: ["OK"]
+			buttons: [getLangRsc("ui-classic/dialog-ok", configData.lang)]
 		};
 		dialog.showMessageBoxSync(currentWindow, options);
 	}
@@ -148,10 +150,44 @@ $(document).ready(function() {
 		setLangRscDiv("#monitorAlphaText", "ui-classic/monitorAlphaText", false, configData.lang);
 		setLangRscDiv("#setMonitor", "ui-classic/setMonitor", false, configData.lang);
 		setLangRscDiv("#monitorText", "ui-classic/monitor", false, configData.lang);
-		//$("#currentSlideText").attr("data-img-label", getLangRsc("ui-classic/currentSlideText", configData.lang));
-		//$("#nextSlideText").attr("data-img-label", getLangRsc("ui-classic/nextSlideText", configData.lang));
+		// 当前/下一张：data-img-label 为图片选择器显示的标签，value 保持英文以供逻辑定位
+		$("#currentSlideText").attr("data-img-label", getLangRsc("ui-classic/currentSlideText", configData.lang));
+		$("#nextSlideText").attr("data-img-label", getLangRsc("ui-classic/nextSlideText", configData.lang));
 		setLangRscDiv("#loadingTxt", "ui-classic/loadingTxt", false, configData.lang);
 		setLangRscDiv("#cancel", "ui-classic/cancel", false, configData.lang);
+		updateGlTitles();
+	}
+
+	// 同步 GoldenLayout 面板标题，使其随语言设置变化
+	function updateGlTitles() {
+		if (glLayout == null || glLayout.root == null) {
+			return;
+		}
+		const titles = {
+			"ndiViews": getLangRsc("ui-classic/tab-ndi-views", configData.lang),
+			"slides": getLangRsc("ui-classic/tab-slides", configData.lang)
+		};
+		try {
+			// getItemsByFilter 定义在 AbstractContentItem.prototype 上，
+			// glLayout 是 LayoutManager 实例，必须经由 root 调用
+			glLayout.root.getItemsByFilter(function(item) {
+				const name = item.config && item.config.componentName;
+				if (name && Object.prototype.hasOwnProperty.call(titles, name)) {
+					item.setTitle(titles[name]);
+				}
+				return false;
+			});
+		} catch (e) {
+			// 标题本地化属于附加功能，失败不应中断界面初始化
+			console.log("updateGlTitles: " + e);
+		}
+		// 文件名标题栏：仅在仍显示占位标题时才更新，避免覆盖已载入的文件名
+		const newReady = getLangRsc("ui-classic/tab-ready", configData.lang);
+		const titleObj = $("#ppt_filename");
+		if (titleObj.length && (titleObj.text() === curReadyTitle || titleObj.text() === "Ready")) {
+			titleObj.text(newReady);
+			curReadyTitle = newReady;
+		}
 	}
 
 	function stopSlideTransition() {
@@ -344,7 +380,7 @@ $(document).ready(function() {
 				]
 			});
 		}
-		$("#slide_cnt").html("SLIDE " + currentSlide + " / " + maxSlideNum);
+		$("#slide_cnt").html(getLangRsc("ui-classic/slide-label", configData.lang) + " " + currentSlide + " / " + maxSlideNum);
 		blkBool = false;
 		whtBool = false;
 		trnBool = false;
@@ -364,7 +400,7 @@ $(document).ready(function() {
 		
 		options = {
 			type: 'question',
-			buttons: ['Yes', 'No'],
+			buttons: [getLangRsc("ui-classic/dialog-yes", configData.lang), getLangRsc("ui-classic/dialog-no", configData.lang)],
 			defaultId: 1,
 			message: "" + (/\S/.test(msg)?msg:defaultMsg),
 			detail: (/\S/.test(description)?description:defaultDetail)
@@ -1228,8 +1264,8 @@ $(document).ready(function() {
 		if ( num > maxSlideNum ) {
 			num = maxSlideNum;
 		}
-		$('optgroup[label="Slides"] option[value="' + num.toString() + '"]').prop('selected',true);
-		$('optgroup[label="Slides"] option[value="' + num.toString() + '"]').change();
+		$('#slides_grp option[value="' + num.toString() + '"]').prop('selected',true);
+		$('#slides_grp option[value="' + num.toString() + '"]').change();
 		prevSlide = currentSlide;
 		currentSlide = num;
 
@@ -1591,6 +1627,8 @@ $(document).ready(function() {
 	}
 
 	function glInit() {
+		// 面板标题使用 i18n；"Ready" 同时作为定位 PPT 文件名标题栏的标识，故保留该词条
+		const readyTitle = getLangRsc("ui-classic/tab-ready", configData.lang);
 		let contentPerTab = [/*{
 				type: 'component',
 				componentName: 'area',
@@ -1608,7 +1646,7 @@ $(document).ready(function() {
 					type: 'component',
 					componentName: 'ndiViews',
 					componentState: { label: 'B' },
-					title: 'NDI Views',
+					title: getLangRsc("ui-classic/tab-ndi-views", configData.lang),
 					height: 48,
 					reorderEnabled: false,
 					isClosable: false
@@ -1617,7 +1655,7 @@ $(document).ready(function() {
 					type: 'component',
 					componentName: 'slides',
 					componentState: { label: 'C' },
-					title: 'Slides',
+					title: getLangRsc("ui-classic/tab-slides", configData.lang),
 					reorderEnabled: false,
 					isClosable: false
 				}
@@ -1645,7 +1683,7 @@ $(document).ready(function() {
 				content: [{
 					id: "tab1",
 					name: "tab1",
-					title: "Ready",
+					title: readyTitle,
 					reorderEnabled: false,
 					type: "row",
 					componentName: "test",
@@ -1676,12 +1714,16 @@ $(document).ready(function() {
 		glLayout.registerComponent( 'ndiViews', function( container, componentState ){
 			const currentScr = $('<td/>').attr({ id: 'currentScr', style: 'vertical-align: top;' });
 			const nextScr = $('<td/>').attr({ id: 'nextScr', style: 'vertical-align: top;' });
+			// 分组标题与选项显示文本随语言变化；value 保持英文以供选中判定逻辑使用
+			const screenLabel = getLangRsc("ui-classic/group-screen", configData.lang);
+			const currentLabel = getLangRsc("ui-classic/currentSlideText", configData.lang);
+			const nextLabel = getLangRsc("ui-classic/nextSlideText", configData.lang);
 			currentScr.append($('<select/>').attr({ class: 'image-picker show-html' })
-				.append($('<optgroup/>').attr({ label: 'Screen', id: 'screen_grp' }))
-				.append($('<option/>').attr({ id: 'currentSlideText', 'data-img-label': 'CURRENT', 'data-img-src': './img/null_slide.png', 'value': 'Current'}).text('Current').prop('disabled', true)));
+				.append($('<optgroup/>').attr({ label: screenLabel, id: 'screen_grp' }))
+				.append($('<option/>').attr({ id: 'currentSlideText', 'data-img-label': currentLabel, 'data-img-src': './img/null_slide.png', 'value': 'Current'}).text(currentLabel).prop('disabled', true)));
 			nextScr.append($('<select/>').attr({ class: 'image-picker show-html' })
-				.append($('<optgroup/>').attr({ label: 'Screen', id: 'screen_grp' }))
-				.append($('<option/>').attr({ id: 'nextSlideText', 'data-img-label': 'NEXT', 'data-img-src': './img/null_slide.png', 'value': 'Next'}).text('Next').prop('disabled', true)));
+				.append($('<optgroup/>').attr({ label: screenLabel, id: 'screen_grp' }))
+				.append($('<option/>').attr({ id: 'nextSlideText', 'data-img-label': nextLabel, 'data-img-src': './img/null_slide.png', 'value': 'Next'}).text(nextLabel).prop('disabled', true)));
 			nextScr.append($('<div/>').attr({ id: 'buttons' })
 				.append($('<button/>').attr({ type: 'button', class: 'button', id: 'prev' }).html('&nbsp;&lt;&nbsp;'))
 				.append($('<button/>').attr({ type: 'button', class: 'button', id: 'next' }).html('&nbsp;&gt;&nbsp;'))
@@ -1706,7 +1748,7 @@ $(document).ready(function() {
 			const wrapBox = $('<div/>');
 			const rightBox = $('<div/>').attr('class', 'right').attr('id', 'below');
 			const selectBox = $('<select/>').attr('class', 'image-picker');
-			selectBox.append($('<optgroup/>').attr('label', 'Slides').attr('id', 'slides_grp'));
+			selectBox.append($('<optgroup/>').attr('label', getLangRsc("ui-classic/tab-slides", configData.lang)).attr('id', 'slides_grp'));
 			rightBox.append(selectBox);
 			wrapBox.append(rightBox);
 
@@ -1721,9 +1763,10 @@ $(document).ready(function() {
 
 		glLayout.init();
 
+		curReadyTitle = readyTitle;
 		for (let i = 0; i < $(".lm_title").length; i++) {
 			let txtObj = $($(".lm_title")[i]);
-			if ( txtObj.text() === "Ready" ) {
+			if ( txtObj.text() === readyTitle ) {
 				txtObj.attr('id', 'ppt_filename');
 				txtObj.parent().css({
 					'background': '#000824',

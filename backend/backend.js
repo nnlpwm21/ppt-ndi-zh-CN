@@ -171,6 +171,40 @@ function destroyWin(win) {
 	}
 }
 
+// 托盘菜单文案（主进程无法使用前端 i18n，故在此按语言内置）
+const TRAY_LABELS = {
+	en: { hide: '&Hide', show: '&Show', configure: '&Configure', exit: 'E&xit' },
+	ko: { hide: '&가리기', show: '&보이기', configure: '&설정', exit: '종료(&X)' },
+	zh: { hide: '隐藏(&H)', show: '显示(&S)', configure: '设置(&C)', exit: '退出(&X)' }
+};
+
+// 读取配置中的语言设置，用于托盘菜单本地化
+function getTrayLabels() {
+	const fs = require( 'fs-extra' );
+	let lang = 'zh';
+	const candidates = [ 'config.js' ];
+	const appDataBase = ( process.platform === 'win32' ) ? process.env.APPDATA
+		: ( process.platform === 'darwin' ? path.join(process.env.HOME, 'Library', 'Preferences')
+			: path.join(process.env.HOME, '.local', 'share') );
+	if ( appDataBase ) {
+		candidates.push( path.join( appDataBase, 'PPT-NDI', 'config.js' ) );
+	}
+	for ( let i = 0; i < candidates.length; i++ ) {
+		try {
+			if ( fs.existsSync(candidates[i]) ) {
+				const cfg = JSON.parse( fs.readFileSync(candidates[i]) );
+				if ( cfg && cfg.lang ) {
+					lang = cfg.lang;
+					break;
+				}
+			}
+		} catch(e) {
+			// 忽略解析失败，继续使用默认值
+		}
+	}
+	return TRAY_LABELS[lang] || TRAY_LABELS.zh;
+}
+
 function refreshTray() {
 	let isVisible = true;
 	let hideShowItem;
@@ -184,7 +218,8 @@ function refreshTray() {
 	} else if (mainWindow != null) {
 		isVisible = isMainWinShown;
 	}
-	hideShowItem = isVisible ? '&Hide' : '&Show';
+	const trayLbl = getTrayLabels();
+	hideShowItem = isVisible ? trayLbl.hide : trayLbl.show;
 	const contextMenu = Menu.buildFromTemplate([
 		{ label: hideShowItem, click() {
 			if (mainWindow2 != null) {
@@ -202,10 +237,10 @@ function refreshTray() {
 			}
 			refreshTray();
 		}},
-		{ label: '&Configure', click() {
+		{ label: trayLbl.configure, click() {
 			mainWindow3.show();
 		}},
-		{ label: 'E&xit', click() {
+		{ label: trayLbl.exit, click() {
 			loopPaused = true;
 			destroyWin([mainWindow2, mainWindow3, monitorWin, rendererWin]);
 			if (process.platform != 'darwin') {
@@ -228,9 +263,9 @@ function refreshTray() {
 function showHelp() {
 	let out = "\nPPT NDI\n";
 	out += " " + path.basename(process.argv[0]) + " [--slideshow] [--classic] [--load-file=(path)]\n";
-	out += "          [--slideshow] : SlidShow Mode\n";
-	out += "            [--classic] : Classic Mode\n";
-	out += "   [--load-file=(path)] : Open a PowerPoint file (Use with --classic)\n";
+	out += "          [--slideshow] : 幻灯片放映模式\n";
+	out += "            [--classic] : 经典模式\n";
+	out += "   [--load-file=(path)] : 打开 PowerPoint 文件（配合 --classic 使用）\n";
 	console.log(out);
 }
 
@@ -255,7 +290,7 @@ function loadArg() {
 		} else if (/^--no-sandbox$/.test(val) && process.platform === 'linux') {
 			// skip: no-sandbox is part of the atom shell
 		} else if (/^(-[^-]|--\S)/.test(val)) {
-			console.log("Unknown switch: " + val);
+			console.log("未知参数: " + val);
 			showHelp();
 			process.exit(1);
 		}
@@ -275,7 +310,7 @@ function loadArg() {
 			registerFocusInfo(mainWindow2);
 			if (fileToLoad) {
 				if (!fs.existsSync(fileToLoad)) {
-					console.log("File not found: " + fileToLoad);
+					console.log("文件不存在: " + fileToLoad);
 					showHelp();
 					process.exit(1);
 				}

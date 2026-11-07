@@ -39,7 +39,7 @@ $(document).ready(function() {
 		options = {
 			type: 'info',
 			message: myMsg,
-			buttons: ["OK"]
+			buttons: [getLangRsc("ui-slideshow/dialog-ok", configData.lang)]
 		};
 		dialog.showMessageBoxSync(currentWindow, options);
 	}
@@ -57,6 +57,15 @@ $(document).ready(function() {
 		switch (configData.lang) {
 			case "ko":
 				$("#slideRes").css("left", "100px");
+				$("#pinTxt").css({
+					"text-align": "center",
+					"font-size": "10px",
+					"left": "232px"
+				});
+				break;
+			case "zh":
+				// 中文字号较英文大，适当放大置顶提示并调整配置按钮宽度
+				$("#config").css("width", "80px");
 				$("#pinTxt").css({
 					"text-align": "center",
 					"font-size": "10px",

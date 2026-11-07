@@ -1,12 +1,12 @@
 PPT NDI v1.0.7
 
-The PPT NDI lets you transfer PowerPoint presentations with transparent background support over NewTek NDI. You don't need additional monitor setups for running, sharing, capturing, and feeding PowerPoint slides. No Chroma/Luma keying is required.
+PPT NDI 可以通过 NewTek NDI 传输带透明背景的 PowerPoint 演示文稿。无需额外显示器，即可运行、共享、采集并推送 PowerPoint 幻灯片。无需使用 Chroma/Luma 抠像。
 
-Release Note (-):
+更新说明 (-):
 
-ADD: Add an option to load a PPT at startup with --load-file={path}
-FIX: Update NDI to 5.5
-FIX: Minor bugs
+新增: 支持通过 --load-file={path} 在启动时加载 PPT
+修复: NDI 更新至 5.5
+修复: 修复少量缺陷
 
-Documentation: https://ykhwong.github.io/ppt-ndi
-Lower thirds sample: https://github.com/ykhwong/ppt-ndi/raw/master/resources/sample.pptx
+文档: https://ykhwong.github.io/ppt-ndi
+下三分之一字幕示例: https://github.com/ykhwong/ppt-ndi/raw/master/resources/sample.pptx
